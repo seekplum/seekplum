@@ -1,0 +1,77 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>上传文件</title>
+    <script src="http://www.w3school.com.cn/jquery/jquery-1.11.1.min.js"></script>
+
+</head>
+<body>
+<form id="upload" enctype="multipart/form-data" method="post" onsubmit="openProgressBar(); return true;">
+    <input type="hidden" name="MAX_FILE_SIZE" value="30000000"/>
+    <input name="userfile" type="file" label="fileupload"/>
+    <input type="submit" value="上传文件"/>
+</form>
+
+文件上传进度
+
+<div>
+    <div id="progress" style="width: 400px; border: 1px solid black">
+        <div id="progressbar" style="height: 10px;width: 0; background-color: #143748;">
+
+        </div>
+    </div>
+    <div>状态: <span id="status">待上传</span>, 进度: <span id="percent">0</span>%</div>
+</div>
+
+
+<script type="text/javascript" language="javascript">
+    var interval = null;
+    function openProgressBar() {
+        // 生成唯一标识来跟踪进度信息
+        var uuid = "";
+        for (var i = 0; i < 32; i++) {
+            uuid += Math.floor(Math.random() * 16).toString(16);
+        }
+        /* patch the form-action tag to include the progress-id */
+        document.getElementById("upload").action = "/api/upload/qlink?X-Progress-ID=" + uuid;
+
+        /* call the progress-updater every 1000ms */
+        interval = window.setInterval(
+            function () {
+                fetch(uuid);
+            },
+            1000
+        );
+    }
+
+    function fetch(uuid) {
+        $.get("/progress?X-Progress-ID=" + uuid, function (data, status) {
+            for (var key in data) {
+                console.log(key + '=' + data[key]);
+            }
+            console.log("状态: " + status);
+            if (status == "success") {
+                /* poor-man JSON parser */
+                document.getElementById('status').innerHTML = "上传中";
+
+                /* change the width if the inner progress-bar */
+                if (data.state == 'done' || data.state == 'uploading') {
+                    var bar = document.getElementById('progressbar');
+                    // 进度保留两位小数
+                    var w = Math.floor(100 * data.received / data.size);
+                    console.log("进度:" + w);
+                    document.getElementById('percent').innerHTML = w;
+                    bar.style.width = 4 * w + 'px';
+                }
+                /* we are done, stop the interval */
+                if (data.state == 'done') {
+                    window.clearTimeout(interval);
+                    document.getElementById('percent').innerHTML = "上传完成";
+                }
+            }
+        });
+
+    }
+</script>
+</body>
+</html>

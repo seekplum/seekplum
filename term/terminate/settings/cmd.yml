@@ -1,0 +1,224 @@
+# node mean the command can runs on compute/storage type node or runs on both type nodes.
+# desc: "-t": ["target", "compute#storage#sanfree", "<ext_target>"]
+#       "-t":
+#       "target": description
+#       "compute#storage#sanfree": run on node type
+#       "<ext_target>": 传入get_iption_words函数的额外参数以计算额外的word_list
+
+conf:
+    add_host:
+        node: [compute, storage, sanfree, unknown]
+        desc: "add host into server table"
+        items:
+            "-i": ["ip", "compute#storage#sanfree"]
+            "-t": ["type <storage/compute/sanfree>", "compute#storage#sanfree","storage", "compute", "sanfree"]
+    del_host:
+        node: [compute, storage, sanfree, unknown]
+        desc: "delete host from server table"
+        items:
+            "-n": ["hostname", "compute#storage#sanfree", "<hostname>"]
+            "-i": ["ip", "compute#storage#sanfree", "<ip>"]
+    import:
+        node: [compute, storage, sanfree, unknown]
+        desc: "apply the yaml file into config"
+        items:
+            "-f": ["import from a file", "compute#storage#sanfree"]
+            "-i": ["import to inner target table", "compute#storage#sanfree"]
+            "-e": ["import to external target table", "compute#storage#sanfree"]
+    export:
+        node: [compute, storage, sanfree, unknown]
+        desc: "export config settings to a file"
+        items:
+            "-f": ["export to a file", "compute#storage#sanfree"]
+            "-i": ["inner", "compute#storage#sanfree"]
+            "-e": ["external", "compute#storage#sanfree"]
+    create_cfile:
+        node: [compute, storage, sanfree, unknown]
+        desc: "create yaml config file from settings or default rules"
+        items:
+            "-f": ["create config to a file", "compute#storage#sanfree"]
+            "-i": ["create inner target config", "compute#storage#sanfree"]
+            "-e": ["craete external target config example", "compute#storage#sanfree"]
+    add_ext:
+        node: [compute, storage, sanfree, unknown]
+        desc: "add external target"
+        items:
+            "-i": ["ip", "compute#storage#sanfree"]
+            "-p": ["port", "compute#storage#sanfree"]
+            "-t": ["target", "compute#storage#sanfree"]
+            "-d": ["driver[iser/iscsi], default: iser", "compute#storage#sanfree", "iser", "iscsi"]
+    diff:
+        node: [compute, storage, sanfree, unknown]
+        desc: "View the differences between two files"
+        items:
+            "-f": ["filename", "compute#storage#sanfree","<ext_file>"]
+            "-p": ["print", "compute#storage#sanfree", "<ext_info>"]
+    del_ext:
+        node: [compute, storage, sanfree, unknown]
+        desc: "delete external target"
+        items:
+            "-i": ["ip", "compute#storage#sanfree","<ext_ip>"]
+            "-t": ["target", "compute#storage#sanfree", "<ext_target>"]
+    set_ext:
+        node: [compute, storage, sanfree, unknown]
+        desc: "set target external attribute"
+        items:
+            "-e": ["external <YES|NO>", "compute#storage#sanfree","<ext_set>"]
+            "-t": ["target", "compute#storage#sanfree", "<target>"]
+    show:
+        node: [compute, storage, sanfree, unknown]
+        desc: "show the config settings"
+        items:
+            "-s": ["show server config", "compute#storage#sanfree"]
+            "-t": ["show target config", "compute#storage#sanfree"]
+            "-e": ["show external target config", "compute#storage#sanfree"]
+    sync:
+        node: [compute, storage, sanfree, unknown]
+        desc: "sync the config settings to all the servers"
+        items:
+            "-g": ["get the latest config", "compute#storage#sanfree"]
+            "-i": ["get config from ip", "compute#storage#sanfree"]
+    clear:
+        node: [compute, storage, sanfree, unknown]
+        desc: "clear the config settings"
+        items:
+            "-s": ["clear server table", "compute#storage#sanfree"]
+            "-t": ["clear target table", "compute#storage#sanfree"]
+            "-e": ["clear external table", "compute#storage#sanfree"]
+
+media:
+    lighton:
+        node: [storage, sanfree, unknown]
+        desc: "light on the disk in a slot"
+        items:
+            "-s": ["specify slot number", "storage#sanfree", "<slot>"]
+    lightoff:
+        node: [storage, sanfree, unknown]
+        desc: "light off the disk in a slot"
+        items:
+            "-s": ["specify slot number", "storage#sanfree", "<slot>"]
+    show_disk:
+        node: [storage, sanfree, unknown]
+        desc:  "show the disk infomation"
+        items:
+            "-p": ["display disk pysical information", "storage#sanfree"]
+    show_flash:
+        node: [storage, sanfree, unknown]
+        desc: "show the flash infomation"
+        items: {}
+    show_nvme:
+        node: [storage, sanfree, unknown]
+        desc: "show the nvme infomation"
+        items: {}
+    show:
+        node: [storage, sanfree, unknown]
+        desc:  "show all the disk/flash infomation"
+        items: {}
+    attach_disk:
+        node: [storage, sanfree, unknown]
+        desc: "attach the disk in a slot from OS"
+        items:
+            "-s": ["slot", "storage#sanfree", "<slot>"]
+            "-c": ["with cache opened", "storage#sanfree"]
+    detach_disk:
+        node: [storage, sanfree, unknown]
+        desc: "detach the disk in a slot from OS"
+        items:
+            "-s": ["slot", "storage#sanfree", "<slot>"]
+    set_cache:
+        node: [storage, sanfree, unknown]
+        desc: "set the disk cache"
+        items:
+            "--enable": ["enable cache", "storage#sanfree"]
+            "--disable": ["disable cache", "storage#sanfree"]
+            "--ratio": ["set read/write ratio suchas 10/90", "storage#sanfree"]
+            "-s": ["specify slot name", "storage#sanfree", "<slot>"]
+    mkpart:
+        node: [storage, sanfree, unknown]
+        desc: "divide disk into equal parts if the volume is over 2T"
+        items:
+            "-d": ["specify disk path", "storage#sanfree"]
+            "-l": ["display log", "storage#sanfree"]
+            "-n": ["number parted", "storage#sanfree"]
+    format_flash:
+        node: [storage, sanfree, unknown]
+        desc:  "format flash disk"
+        items:
+            "-d": ["specify device name", "storage#sanfree"]
+            "-b": ["specify block size", "storage#sanfree"]
+
+qlink:
+    show:
+        node: [compute, storage, sanfree, unknown]
+        desc: "show online qlink/target info"
+        items:
+            "-t": ["display online target info", "storage#sanfree"]
+            "-q": ["qlink info", "storage#sanfree"]
+            "-c": ["display loaded target infomation", "compute#sanfree"]
+            "-p": ["specify port", "storage#sanfree"]
+            "-m": ["show with more", "storage#sanfree#storage"]
+            "-s": ["show targets info of storage server", "compute#sanfree"]
+    load:
+        node: [compute, sanfree, unknown]
+        desc: "load target on computer node"
+        items:
+            "-t": ["target","compute#sanfree"]
+            "-i": ["ip", "compute#sanfree"]
+            "-p": ["port", "compute#sanfree"]
+            "-s": ["server","compute#sanfree", "<hostname>"]
+            "-r": ["rescan if already loaded", "compute#sanfree"]
+    unload:
+        node: [compute, sanfree, unknown]
+        desc: "unload a target on computer node"
+        items:
+            "-t": ["target", "compute#sanfree", "<target>", "<ext_target>"]
+            "-i": ["ibcard ip", "compute#sanfree"]
+            "-p": ["port", "compute#sanfree"]
+            "-s": ["server", "compute#sanfree", "<hostname>"]
+    add_target:
+        node: [storage, sanfree, unknown]
+        desc: "add a target to qlink"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-d": ["driver", "storage#sanfree", "iser", "iscsi"]
+            "-e": ["external", "storage#sanfree"]
+    del_target:
+        node: [storage, sanfree, unknown]
+        desc: "delete a target to qlink"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-t": ["target id", "storage#sanfree"]
+            "-n": ["target name", "storage#sanfree"]
+    add_lun:
+        node: [storage, sanfree, unknown]
+        desc: "add a lun to a target in qlink"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-t": ["target id", "storage#sanfree"]
+            "-b": ["block device path", "storage#sanfree"]
+    del_lun:
+        node: [storage, sanfree, unknown]
+        desc: "delete a lun from a target in qlink"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-t": ["target id", "storage#sanfree"]
+            "-b": ["block device path", "storage#sanfree"]
+    set_acl:
+        node: [storage, sanfree, unknown]
+        desc: "set a acl to a target"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-t": ["target id", "storage#sanfree"]
+            "-a": ["network address", "storage#sanfree"]
+    start:
+        node: [storage, sanfree, unknown]
+        desc: "start a qlink"
+        items:
+            "-p": ["port", "compute#sanfree"]
+            "-a": ["all", "compute#sanfree"]
+    stop:
+        node: [storage, sanfree, unknown]
+        desc: "stop qlink"
+        items:
+            "-p": ["port", "storage#sanfree"]
+            "-a": ["all", "compute#storage#sanfree"]

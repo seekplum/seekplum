@@ -1,0 +1,47 @@
+<html>
+<head>
+    <title>购买书籍</title>
+    <style>
+        #count{
+            color: blue;
+        }
+
+        #curr_count{
+            color: olivedrab;
+        }
+        #message{
+            color: red;
+        }
+    </style>
+    <script src="{{ static_url('js/jquery-2.0.0.js') }}" type="text/javascript"></script>
+    <script src="{{ static_url('js/index.js') }}" type="application/javascript"></script>
+</head>
+<body>
+<div>
+    <h1>购买书籍</h1>
+    <hr/>
+    <p>
+
+    <h2>书籍详情</h2>
+    <em>假装有图片</em>
+    </p>
+</div>
+
+<hr/>
+<input type="hidden" id="uuid" value="{{ uuid }}"/>
+<input type="hidden" id="host" value="{{ host }}"/>
+
+<div>
+    <p>
+        剩余总数： <span id="count">{{ count }}</span>
+        你购买的数量： <span id="curr_count">{{ curr_count }}</span>
+        <span id="message"></span>
+    </p>
+
+    <p>
+        <input type="submit" value="购买书籍" id="add-button"/>
+        <input type="submit" value="移除书籍" id="remove-button"/>
+    </p>
+</div>
+</body>
+</html>

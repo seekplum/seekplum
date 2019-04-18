@@ -1,0 +1,66 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+    color_formatter:
+        (): log.Formatter
+        color: true
+        format : '%(color)s[%(name)s %(levelname)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+
+    simple_formatter:
+        (): log.Formatter
+        color: false
+        format : '%(color)s[%(name)s %(levelname)s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+    # 是否在终端打印
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: color_formatter
+        stream: ext://sys.stdout
+
+    error_handler:
+        class: logging.handlers.RotatingFileHandler
+        level: ERROR
+        formatter: color_formatter
+        filename: D:\automated\log\errors.log
+        maxBytes: 10485760 # 10MB
+        backupCount: 1000
+        encoding: utf8
+    info_handler:
+        class: logging.handlers.RotatingFileHandler
+        level: INFO
+#        formatter: color_formatter
+        filename: D:\automated\log\info.log
+        maxBytes: 10485760 # 10MB
+        backupCount: 1000
+        encoding: utf8
+
+# TODO
+# 过滤日志中的关键字， 含有xxx才打印
+filter:
+    a:
+        name:
+    b:
+        name:
+
+# info log 日志存放日志路径
+LOG_PATH: D:\automated\words
+
+# 默认logger， 在logging.getLogger("xx")获取失败或者用logging.getLogger()时自动换成该logger, 必须定义
+root:
+    level: INFO
+    handlers: [console]
+
+# 常规logger，使用logging.getLogger("seekplum.cloud")来获取
+loggers:
+    seekplum.cloud:
+          level: INFO
+          handlers: [console, error_handler]
+          propagate: no
+loggers_info:
+    level: INFO
+    handlers: [info_handler]
+    propagate: no

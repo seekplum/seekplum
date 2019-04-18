@@ -1,0 +1,9 @@
+*.log
+*.pyc
+.idea
+test.*
+history.txt
+*.db
+_site/*
+tests/.pytest_cache/*
+.vscode
