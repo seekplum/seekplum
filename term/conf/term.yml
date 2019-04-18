@@ -1,0 +1,47 @@
+# the name of the TERM
+TERM_NAME: TermMgr
+
+# node type
+STO_TYPE: storage
+COM_TYPE: compute
+SANFREE_TYPE: sanfree
+UNKNOWN_TYPE: unknown
+
+
+# ============================================================================
+# TERM SSH configure
+SSH_CONF:
+    hostname: Null
+    port: 22
+    conn_timeout: 4
+    username: root
+    key_filename: /root/.ssh/id_rsa
+
+# ============================================================================
+# termmgr commands
+COMMAND_CONF: conf
+COMMAND_MEDIA: media
+COMMAND_QLINKADM: qlink
+
+
+# the configure database location
+Seekplum_DB_FILE: Data/seekplum.db
+Seekplum_DB_FILE_LOCAL: Data/seekplum_local.db
+TERM_HISTORY_FILE: Data/history.txt
+
+
+# ============================== log option ==================================
+LOG_PING_PATH: logs/
+LOG_OPTION:
+    filename: logs/term_info.log
+    maxBytes: 5242880  # 5M
+    backupCount: 3
+    level: INFO  # DEBUG, INFO, WARNING, ERROR
+    log_to_stderr: False
+
+ELOG_OPTION:
+    filename: logs/term_error.log
+    maxBytes: 5242880  # 5M
+    backupCount: 3
+    level: WARNING  # DEBUG, INFO, WARNING, ERROR
+    log_to_stderr: False

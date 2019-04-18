@@ -1,0 +1,63 @@
+<!-- room.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+        $(function(){
+            n = $("#n").val()
+            u = $("#u").val()
+
+            $("#btn").click(function(){
+                sendText()
+            })
+            function requestText(){
+                host = "ws://127.0.0.1:8888/new_chat?n=" + n + "&u=" +u;
+//                host = "ws://127.0.0.1:11100/api/websocket/test";
+                websocket = new WebSocket(host)
+
+                websocket.onopen = function(evt){}      // 建立连接
+                websocket.onmessage = function(evt){    // 获取服务器返回的信息
+                    data = $.parseJSON(evt.data)
+                    if(data['from']=='sys'){
+                        $('#chatinfo').append("<p style='width: 100%; text-align:center; font-size: 16px; color: green'>" + data['message'] + "</p>");
+                    }else if(data['from']==u){
+                        $('#chatinfo').append("<p style='width: 100%; text-align:right; font-size:15px'>" + u + ": <br>" +"<span style='color: blue'>" + data['message'] + "</span>" + "</p>");
+                    }else{
+                        $('#chatinfo').append("<p style='width: 100%; text-align:left; font-size:15px'>" + data['from'] + ": <br>" +"<span style='color: red'>" + data['message'] + "</span>" + "</p>");
+                    }
+
+                }
+                websocket.onerror = function(evt){}
+            }
+
+            requestText()   // 开始 websocket
+
+            function sendText(){    // 向服务器发送信息
+                websocket.send($("#chat_text").val())
+            }
+        })
+
+    </script>
+</head>
+<body>
+<div align="center">
+    <div style="width: 70%">
+        <h1>聊天室（{{ n }}）!</h1>
+        <input type="hidden" value="{{ n }}" id="n">
+        <input type="hidden" value="{{ u }}" id="u">
+
+        <div id="chatinfo" style="padding:10px;border: 1px solid #888">
+            <!-- 聊天内容 -->
+        </div>
+
+        <div style="clear: both; text-align:right; margin-top: 20px">
+            <input type="text" name="chat_text" id="chat_text">
+            <button id="btn">发送</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

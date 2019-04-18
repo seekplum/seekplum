@@ -1,0 +1,12 @@
+Host cobbler
+    HostName 1.1.1.1
+    User root
+    Port 3333
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/id_dsa
+
+Host seekplum.github.com
+    HostName github.com
+    User seekplum
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/seekplum

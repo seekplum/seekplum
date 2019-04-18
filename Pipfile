@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[[source]]
+name = "douban"
+url = "https://pypi.douban.com/simple/"
+verify_ssl = true
+
+[dev-packages]
+invoke = {index = "https://pypi.douban.com/simple/",version = "*"}
+
+[packages]
+elasticsearch = {index = "https://pypi.douban.com/simple/",version = "*"}
+celery = {index = "https://pypi.douban.com/simple/",version = "*"}
+redis = {index = "https://pypi.douban.com/simple/",version = "*"}
+
+[requires]
+python_version = "2.7"
