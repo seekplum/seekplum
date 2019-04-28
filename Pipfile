@@ -15,6 +15,7 @@ invoke = {index = "https://pypi.douban.com/simple/",version = "*"}
 elasticsearch = {index = "https://pypi.douban.com/simple/",version = "*"}
 celery = {index = "https://pypi.douban.com/simple/",version = "*"}
 redis = {index = "https://pypi.douban.com/simple/",version = "*"}
+socketserver = {index = "https://pypi.douban.com/simple/",version = "*"}
 
 [requires]
 python_version = "2.7"
