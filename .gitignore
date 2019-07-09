@@ -8,3 +8,4 @@ _site/*
 tests/.pytest_cache/*
 .vscode
 *.dat
+.DS_Store
