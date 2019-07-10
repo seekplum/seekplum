@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>目录</title>
+
+    <!-- CSS Here -->
+    <style>
+        .center {
+            text-align: center;
+        }
+
+
+        ul > li {
+            {#text-align: center;#}
+            list-style: none;
+            margin-left: 30%;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<h2 class="center">目录</h2>
+<ul>
+    {% for item in catalogs %}
+        <li><a href="{{ item.url }}">{{  item.publish_time}} {{item.title}}</a><li/>
+    {% endfor %}
+</ul>
+</body>
+<!-- JavaScript Files Here -->
+</html>
