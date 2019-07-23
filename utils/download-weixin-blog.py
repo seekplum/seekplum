@@ -11,6 +11,7 @@ import six.moves
 import string
 
 from itertools import chain
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
@@ -51,6 +52,7 @@ def check_is_valid_url(url):
 class DownloadWeixinBlog(object):
     def __init__(self, temp_dir):
         self._temp_dir = temp_dir
+        self._thread_pool = ThreadPoolExecutor()
         self._session = requests.session()
         self._timeout = 3
         self._pattern_img = re.compile(r"\?wx_fmt=[a-z]+")
@@ -143,23 +145,26 @@ class DownloadWeixinBlog(object):
                          "utf-8") as f:
             f.write(content)
 
+    def _get_info(self, urls):
+        """线程池获取数据
+        """
+        futures = [
+            self._thread_pool.submit(self._get_context_publish_time_and_soup,
+                                     link) for link in urls]
+        data = [future.result() for future in futures]
+        data = map(lambda r: r + (random_string(),), filter(lambda x: x, data))
+
+        # 按时间排序
+        data = sorted(data, key=lambda x: x[0])
+        return data
+
     def collect(self, urls):
         """收集博客信息
 
         :param urls 页面对应的链接集合
         :type urls set
         """
-        # data = [self._get_context_publish_time_and_soup(link) for link in
-        #         urls]
-        data = []
-        for link in urls:
-            result = self._get_context_publish_time_and_soup(
-                link) + (random_string(),)  # 文件名使用随机字符串
-            if not result:
-                continue
-            data.append(result)
-        # 按时间排序
-        data = sorted(data, key=lambda x: x[0])
+        data = self._get_info(urls)
 
         # 所有的目录
         catalogs = []
@@ -273,7 +278,7 @@ class DownloadWeixinBlog(object):
         with codecs.open(
                 os.path.join(self._temp_dir, self._gen_blog_name(name)), "w+",
                 "utf-8") as f:
-            context = re.sub(self._pattern_img, "", context)
+            # context = re.sub(self._pattern_img, "", context)
             context = context.replace("data-src", "src")
             f.write(context)
 
@@ -286,7 +291,7 @@ def main():
         "https://mp.weixin.qq.com/s/Ok5SjqhiQkG5sLUPNY02Mw",  # 2019汇总
     ]
     blog_urls = map(d.parser, urls)
-    blog_urls = list(chain.from_iterable(blog_urls))
+    blog_urls = set(list(chain.from_iterable(blog_urls)))
     d.collect(blog_urls)
 
 
