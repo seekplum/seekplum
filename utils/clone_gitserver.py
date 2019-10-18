@@ -43,6 +43,28 @@ def get_logger(level=None):
 logger = get_logger()
 
 
+class cd(object):
+    """进入目录执行对应操作后回到目录
+    """
+
+    def __init__(self, new_path):
+        """初始化
+
+        :param new_path: 目标目录
+        :type new_path str
+        :example new_path "/tmp"
+        """
+        self._new_path = new_path
+        self._current_path = None
+
+    def __enter__(self):
+        self._current_path = os.getcwd()
+        os.chdir(self._new_path)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        os.chdir(self._current_path)
+
+
 class Clone(object):
     def __init__(self, host, username, password, target_dir):
         """初始化
@@ -157,8 +179,27 @@ class Clone(object):
         repository = self._get_git_url(project)
         target_dir = os.path.join(self._target_dir, project)
         if os.path.exists(target_dir):
-            logger.warning("{} is exists".format(project))
-            return
+            cmd = (
+                'if [ `git branch -a | grep "origin/master" | wc -l` == 0 ]; '
+                'then '
+                'branch="origin/`git rev-parse --abbrev-ref HEAD`"; '
+                'else '
+                'branch="origin/master"; fi; '
+                'if [ $? != 0 ]; '
+                'then echo "\033[33m`pwd` get branch failed \033[0m";'
+                'else '
+                'if [ `git status -s | wc -l` == 0 ]; '
+                'then git branch --set-upstream-to="$branch" >/dev/null 2>&1; '
+                'git pull --rebase >/dev/null 2>&1; '
+                'else echo "\033[33m`pwd` has been modified \033[0m"; fi;'
+                'if [ $? != 0 ]; '
+                'then echo "\033[33m`pwd` pull failed \033[0m"; fi;'
+                'fi;'
+            )
+            with cd(target_dir):
+                # logger.info("cmd: %s" % cmd)
+                subprocess.call(cmd, shell=True)
+                return
 
         # 避免目录重复创建
         with lock:
@@ -167,8 +208,8 @@ class Clone(object):
                 os.makedirs(parent_dir)
 
         cmd = "git clone {} {}".format(repository, target_dir)
-        logger.info("cmd: %s" % cmd)
-        # subprocess.call(cmd, shell=True)
+        # logger.info("cmd: %s" % cmd)
+        subprocess.call(cmd, shell=True)
 
     def clone_projects(self, projects):
         """克隆项目
