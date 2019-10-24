@@ -10,20 +10,28 @@
             text-align: center;
         }
 
-
-        ul > li {
-            {#text-align: center;#}
+        .blog-nav {
             list-style: none;
+        }
+
+        .blog-title {
             margin-left: 30%;
-            font-size: 20px;
+            padding: 5px 0;
+        }
+
+        .blog-link {
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
-<h2 class="center">目录</h2>
-<ul>
+<h1 class="center">目录</h1>
+<ul class="blog-nav">
     {% for item in catalogs %}
-        <li><a href="{{ item.url }}">{{  item.publish_time}} {{item.title}}</a><li/>
+        <li class="blog-title">
+            <a class="blog-link"
+               href="{{ item.url }}">{{ item.publish_time }} {{ item.title }}</a>
+        </li>
     {% endfor %}
 </ul>
 </body>

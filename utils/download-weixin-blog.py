@@ -5,17 +5,17 @@ from __future__ import print_function, unicode_literals
 
 import codecs
 import os
-import re
 import random
-import six.moves
+import re
 import string
-
+import time
+from functools import wraps, partial
 from itertools import chain
-from concurrent.futures import ThreadPoolExecutor
 
 import requests
-
+import six.moves
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor
 from jinja2 import FileSystemLoader, Environment
 
 
@@ -49,10 +49,28 @@ def check_is_valid_url(url):
     return True
 
 
+def statistical_service_time(func=None):
+    """统计函数使用时间
+    """
+
+    if func is None:
+        return partial(statistical_service_time)
+
+    @wraps(func)
+    def decorate(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        use_time = time.time() - start_time
+        print("func [ %s ] use time [ %.3fs ]" % (func.__name__, use_time))
+        return result
+
+    return decorate
+
+
 class DownloadWeixinBlog(object):
     def __init__(self, temp_dir):
         self._temp_dir = temp_dir
-        self._thread_pool = ThreadPoolExecutor()
+        self._thread_pool = ThreadPoolExecutor(max_workers=1)
         self._session = requests.session()
         self._timeout = 3
         self._pattern_img = re.compile(r"\?wx_fmt=[a-z]+")
@@ -83,6 +101,7 @@ class DownloadWeixinBlog(object):
     def _gen_blog_name(title):
         return "%s.html" % title
 
+    @statistical_service_time
     def parser(self, url):
         """解析页面中的链接
 
@@ -126,6 +145,7 @@ class DownloadWeixinBlog(object):
 
         return publish_time, self._get_title(soup), soup
 
+    @statistical_service_time
     def _render_catalog_and_write_html(self, catalogs):
         """生成目录索引，并写入HTML中
 
@@ -145,57 +165,24 @@ class DownloadWeixinBlog(object):
                          "utf-8") as f:
             f.write(content)
 
+    @statistical_service_time
     def _get_info(self, urls):
-        """线程池获取数据
+        """获取所有的链接
         """
         futures = [
             self._thread_pool.submit(self._get_context_publish_time_and_soup,
                                      link) for link in urls]
         data = [future.result() for future in futures]
-        data = map(lambda r: r + (random_string(),), filter(lambda x: x, data))
+
+        # 过滤空数据
+        data = filter(lambda x: x, data)
+
+        # 增加随机文件名
+        # data = map(lambda r: r + (random_string(),), data)
 
         # 按时间排序
         data = sorted(data, key=lambda x: x[0])
         return data
-
-    def collect(self, urls):
-        """收集博客信息
-
-        :param urls 页面对应的链接集合
-        :type urls set
-        """
-        data = self._get_info(urls)
-
-        # 所有的目录
-        catalogs = []
-        length = len(data)
-        for index, item in enumerate(data):
-            publish_time = "%d.%s" % (index + 1, item[0])
-            title = item[1]
-            name = item[3]
-            catalogs.append(
-                {
-                    "publish_time": publish_time,
-                    "title": title,
-                    "url": self._gen_blog_name(name),
-                }
-            )
-
-            next_blog = {
-                "title": data[index + 1][1],
-                "name": data[index + 1][3],
-                "publish_time": "%d.%s" % (index + 2, data[index + 1][0])
-            } if index < length - 1 else None
-            head_blog = {
-                "title": data[index - 1][1],
-                "name": data[index - 1][3],
-                "publish_time": "%d.%s" % (index, data[index - 1][0])
-            } if index > 0 else None
-
-            self._update_blog_content_and_write_html(name, item[2], head_blog,
-                                                     next_blog)
-        self._render_catalog_and_write_html(catalogs)
-        return
 
     def _update_blog_content_and_write_html(self, name, soup, head_blog,
                                             next_blog):
@@ -280,9 +267,69 @@ class DownloadWeixinBlog(object):
                 "utf-8") as f:
             # context = re.sub(self._pattern_img, "", context)
             context = context.replace("data-src", "src")
+            context = context.replace("https://", "http://")
             f.write(context)
 
+    def _write_blog(self, length, index, item, data):
+        """写入博客内容
+        """
+        date_day = item[0]
+        soup = item[2]
+        publish_time = "%d. %s" % (index + 1, date_day)
 
+        title_index = 1
+        name_index = 1
+        title = item[title_index]
+        name = item[name_index]
+
+        next_blog = {
+            "title": data[index + 1][title_index],
+            "name": data[index + 1][name_index],
+            "publish_time": "%d.%s" % (index + 2, data[index + 1][0])
+        } if index < length - 1 else None
+        head_blog = {
+            "title": data[index - 1][title_index],
+            "name": data[index - 1][name_index],
+            "publish_time": "%d.%s" % (index, data[index - 1][0])
+        } if index > 0 else None
+
+        self._update_blog_content_and_write_html(name, soup, head_blog,
+                                                 next_blog)
+        return {
+            "publish_time": publish_time,
+            "title": title,
+            "url": self._gen_blog_name(name),
+        }
+
+    @statistical_service_time
+    def _get_catalogs(self, data):
+        """获取目录
+        """
+        length = len(data)
+        print("Total Blog: %d" % length)
+        futures = [
+            self._thread_pool.submit(self._write_blog, length, index, item,
+                                     data) for index, item in enumerate(data)]
+        # 所有的目录
+        catalogs = [future.result() for future in futures]
+        return catalogs
+
+    def collect(self, urls):
+        """收集博客信息
+
+        :param urls 页面对应的链接集合
+        :type urls set
+        """
+        data = self._get_info(urls)
+        catalogs = self._get_catalogs(data)
+
+        self._render_catalog_and_write_html(catalogs)
+        print("Done! Please run `open %s`" % os.path.join(self._temp_dir,
+                                                          self._index_html_name))
+        return
+
+
+@statistical_service_time
 def main():
     d = DownloadWeixinBlog("/tmp/html")
     urls = [
