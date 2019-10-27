@@ -4,6 +4,7 @@
 from __future__ import print_function, unicode_literals
 
 import codecs
+import hashlib
 import os
 import random
 import re
@@ -17,6 +18,14 @@ import six.moves
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from jinja2 import FileSystemLoader, Environment
+
+
+def get_md5(value):
+    value = value.encode("utf-8")
+    my_md5 = hashlib.md5()  # 获取一个MD5的加密算法对象
+    my_md5.update(value)  # 得到MD5消息摘要
+    digest = my_md5.hexdigest()  # 以16进制返回消息摘要，32位
+    return digest
 
 
 def random_string(length=5):
@@ -99,6 +108,7 @@ class DownloadWeixinBlog(object):
 
     @staticmethod
     def _gen_blog_name(title):
+        title = get_md5(title)
         return "%s.html" % title
 
     @statistical_service_time
@@ -261,6 +271,9 @@ class DownloadWeixinBlog(object):
             last_p.append(last_next)
 
         last_div.insert(0, first_p)
+        # 删除script
+        s = soup.find("script", attrs={"id": "moon_inline"})
+        s.extract()
         context = soup.prettify()
         with codecs.open(
                 os.path.join(self._temp_dir, self._gen_blog_name(name)), "w+",
