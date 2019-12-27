@@ -75,6 +75,7 @@ class Clone(object):
         self._base_url = "https://{}".format(self._host)
         self._target_dir = target_dir
         self._req_session = requests.Session()
+        self._is_running = True
 
     def _get_csrf_token(self):
         """查询token
@@ -103,7 +104,7 @@ class Clone(object):
         }
         response = self._req_session.post(url=url, data=data)
         status_code = response.status_code
-        logger.info("status_code: %s" % status_code)
+        logger.info("login status_code: {}".format(status_code))
 
     def _query_for_user(self):
         """查询所有的用户
@@ -176,10 +177,14 @@ class Clone(object):
 
         克隆可以指定 `分支`， 最后几次commit id等，可以提高速度
         """
+        if not self._is_running:
+            return
         repository = self._get_git_url(project)
         target_dir = os.path.join(self._target_dir, project)
         if os.path.exists(target_dir):
             cmd = (
+                'if [ `git rev-list -n 1 --all | wc -l` != 0 ]; '
+                'then '
                 'if [ `git branch -a | grep "origin/master" | wc -l` == 0 ]; '
                 'then '
                 'branch="origin/`git rev-parse --abbrev-ref HEAD`"; '
@@ -194,11 +199,16 @@ class Clone(object):
                 'else echo "\033[33m`pwd` has been modified \033[0m"; fi;'
                 'if [ $? != 0 ]; '
                 'then echo "\033[33m`pwd` pull failed \033[0m"; fi;'
-                'fi;'
+                'fi; '
+                'else echo "\033[33m`pwd` is an empty repository \033[0m";'
+                'fi; '
             )
             with cd(target_dir):
-                # logger.info("cmd: %s" % cmd)
-                subprocess.call(cmd, shell=True)
+                logger.info("director: {}".format(target_dir))
+                try:
+                    subprocess.check_call(cmd, shell=True)
+                except subprocess.CalledProcessError:
+                    self._is_running = False
                 return
 
         # 避免目录重复创建
