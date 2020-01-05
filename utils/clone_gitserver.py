@@ -76,6 +76,7 @@ class Clone(object):
         self._target_dir = target_dir
         self._req_session = requests.Session()
         self._is_running = True
+        self.fork_projects = []
 
     def _get_csrf_token(self):
         """查询token
@@ -106,16 +107,26 @@ class Clone(object):
         status_code = response.status_code
         logger.info("login status_code: {}".format(status_code))
 
-    def _query_for_user(self):
+    def _query_for_user(self, page=1, users=None):
         """查询所有的用户
 
         :rtype list
         """
+        users = users or []
         url = urljoin(self._base_url, "explore/users")
+        params = {
+            "page": page,
+            "sort": "alphabetically",
+            "q": ""
+        }
         pattern = re.compile(r'<span class="header"><a href="/.*">(.*)</a>')
-        response = self._req_session.get(url=url)
+        response = self._req_session.get(url=url, params=params)
         content = response.text
-        return pattern.findall(content)
+        page_pattern = re.compile(r'<a class="[\w\s]+" href="/explore/users\?page=(\d+)&sort=alphabetically&amp;q=">')
+        pages = page_pattern.findall(content)
+        total_page = max(map(lambda x: int(x), pages))
+        users.extend(pattern.findall(content))
+        return self._query_for_user(page + 1, users) if page < total_page else users
 
     def _query_for_organization(self):
         """查询所有的组织
@@ -123,8 +134,7 @@ class Clone(object):
         :rtype list
         """
         url = urljoin(self._base_url, "explore/organizations")
-        pattern = re.compile(
-            r'<span class="header">\n\s+<a href="/.*">(.*)</a> ', re.MULTILINE)
+        pattern = re.compile(r'<span class="header">\n\s+<a href="/.*">(.*)</a> ', re.MULTILINE)
         response = self._req_session.get(url=url)
         content = response.text
         return pattern.findall(content)
@@ -150,10 +160,10 @@ class Clone(object):
         :return ["test/test", "test/test1"]
         :rtype list
         """
-        targets = self._query_for_user()
-        targets.extend(self._query_for_organization())
+        users = self._query_for_user()
+        organizations = self._query_for_organization()
         projects = []
-        for target in targets:
+        for target in users + organizations:
             result = self.query_target_project(target)
             projects.extend(map(lambda x: "{}/{}".format(target, x), result))
         return projects
@@ -234,14 +244,16 @@ class Clone(object):
                    project in projects]
         map(lambda future: future.result(), futures)
 
-    @staticmethod
-    def _get_current_page_project_name(target, content):
+    def _get_current_page_project_name(self, target, content):
         """查询项目信息
         """
-        pattern = re.compile(r'<a class="name" href="/{}/.*">\n\s+'
-                             r'(.*)\n\s+</a>'.format(target), re.MULTILINE)
+        base = '<a class="name" href="/{}/.*">\n\s+(.*)\n\s+</a>'.format(target)
+        forked = '(\n.*\n.*<span><i class="octicon octicon-repo-forked"></i></span>)?'
+        pattern = re.compile(r'{}{}'.format(base, forked), re.MULTILINE)
         projects = pattern.findall(content)
-        return projects
+        fork_projects = [p[0] for p in projects if len(p) == 2 and p[1] != ""]
+        self.fork_projects.extend(["{}/{}".format(target, n) for n in fork_projects])
+        return [p[0] for p in projects if p[0] not in fork_projects]
 
     def _get_git_url(self, project):
         """组合git远程路径
@@ -253,6 +265,9 @@ class Clone(object):
         self._login()
         projects = self.query_projects()
         self.clone_projects(projects)
+        print("-" * 100)
+        print("\n".join(self.fork_projects))
+        print("-" * 100)
 
 
 def main():
