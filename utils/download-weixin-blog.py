@@ -349,6 +349,7 @@ def main():
         "https://mp.weixin.qq.com/s/4kTtn_gLYQrX7JFlEJdsZg",  # 2017汇总
         "https://mp.weixin.qq.com/s/oFQHrCZvItgc8McrZSaovw",  # 2018汇总
         "https://mp.weixin.qq.com/s/Ok5SjqhiQkG5sLUPNY02Mw",  # 2019汇总
+        "https://mp.weixin.qq.com/s/dpWZ6qOvU1T9sdOzMNVyAA",  # 2020汇总
     ]
     blog_urls = map(d.parser, urls)
     blog_urls = set(list(chain.from_iterable(blog_urls)))
