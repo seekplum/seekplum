@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+
+import six
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import declarative_base
@@ -51,14 +53,14 @@ def drop_all_table():
 class ModelMixin(object):
     def __getitem__(self, key):
         value = getattr(self, key)
-        if isinstance(value, unicode):
-            return str(value)
+        if isinstance(value, six.text_type):
+            return six.ensure_str(value)
         return value
 
     def __getattribute__(self, key):
         value = super(ModelMixin, self).__getattribute__(key)
-        if isinstance(value, unicode):
-            return str(value)
+        if isinstance(value, six.text_type):
+            return six.ensure_str(value)
         return value
 
     @classmethod

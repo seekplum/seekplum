@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import json
 
-import settings
+from past.builtins import basestring
 
 from contextlib import contextmanager
 from datetime import datetime
@@ -13,11 +14,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.schema import MetaData
 
-engine_str = 'mysql+mysqldb://{username}:{password}@{host}:{port}/{db_name}'.format(**settings.db["mysql"])
+engine_str = 'mysql+mysqldb://admin:admin123456@127.0.0.1:3306/test'
 engine = create_engine(engine_str, pool_size=5, pool_recycle=3600,
                        connect_args={"use_unicode": True, "charset": "utf8"})
 Session = sessionmaker(bind=engine, autocommit=True, autoflush=False, expire_on_commit=False)
 metadata = MetaData(bind=engine)
+
+
+class SQLException(Exception):
+    pass
 
 
 class ModelMixin(object):
@@ -26,7 +31,7 @@ class ModelMixin(object):
     """
     __table_args__ = {
         "mysql_engine": "InnoDB",
-        "mysql_charset": "utf8"
+        # "mysql_charset": "utf8"
     }
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -61,9 +66,17 @@ class ModelMixin(object):
         result = {}
         columns = self.__table__.columns.keys()
         for column in columns:
-            if column != "attr":
-                result[column] = getattr(self, column)
+            result[column] = getattr(self, column)
         return result
+
+    def __repr__(self):
+        data = self.to_dict()
+        for k, v in data.items():
+            if isinstance(v, datetime):
+                data[k] = v.strftime("%Y-%m-%m %H:%M:%S")
+        return json.dumps(data, ensure_ascii=False, indent=2)
+
+    __str__ = __repr__
 
     @classmethod
     def merge(cls, session, obj, key, value=None):
@@ -126,7 +139,7 @@ class ModelMixin(object):
                 flag_modified(self, key)
             else:
                 raise SQLException("update: no such key {} or unsurpported value type {}".format(key, type(value)))
-                
+
     def modify(self, key):
         flag_modified(self, key)
 

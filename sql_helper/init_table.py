@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 
 # 不导入无法创建表
-from base import *
-from seekplum import *
+from sql_helper.base import *
+from sql_helper.models import *
 import logging
 
 if __name__ == '__main__':

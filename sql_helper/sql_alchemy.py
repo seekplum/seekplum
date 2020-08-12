@@ -125,32 +125,32 @@ def insert():
 def query():
     """ 查询 """
     for user in session.query(User).order_by(User.name):
-        print "name:", user.name, "\nfullname", user.fullname
+        print("name:", user.name, "\nfullname", user.fullname)
 
     # 使用filter_by过滤
     for name in session.query(User.name).filter_by(fullname='Mary Contrary'):
-        print "filter name:", name
+        print("filter name:", name)
 
     # 使用sqlalchemy的SQL表达式语法过滤，可以使用python语句
     for name in session.query(User.name).filter(User.fullname == 'Mary Contrary'):
-        print "SQL name", name
+        print("SQL name", name)
     # label:重命名功能
     label = session.query(User.fullname.label('new_name')).first()
-    print "label: %s" % label.new_name  # 用new_name 代替fullname
+    print("label: %s" % label.new_name)  # 用new_name 代替fullname)
     # in_
     in_ = session.query(User).filter(User.name.in_(['A', 'fakeuser'])).first()
-    print "in_: %s" % in_.name
+    print("in_: %s" % in_.name)
     result = session.query(User).filter(User.fullname == 'Mary Contrary').one()
-    print '\n\n\n查询结果', type(result), result, result.name, '\n\n\n'
+    print('\n\n\n查询结果', type(result), result, result.name, '\n\n\n')
 
     # 多表连接查询
     name_email = session.query(User.name, User.password, Address.email).filter(User.name == Address.name).all()
     for item in name_email:
-        print "name: %s, password: %s, email: %s" % (item.name, item.password, item.email)
+        print("name: %s, password: %s, email: %s" % (item.name, item.password, item.email))
     fullname_email = session.query(User.name, User.fullname, Address.email).join(
         (Address, User.name == Address.name)).all()
     for item in fullname_email:
-        print "name: %s, fullname: %s, email: %s" % (item.name, item.fullname, item.email)
+        print("name: %s, fullname: %s, email: %s" % (item.name, item.fullname, item.email))
 
 
 def create():

@@ -1,19 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import logging
 
 from sqlalchemy import Column, String, Integer, Enum, ForeignKey, JSON
 from sqlalchemy.orm import relationship, backref
-from base import Entity, open_session, Session
+from .base import Entity, open_session
 
 
 def default_host_uuid(context):
     return context.current_parameters["ip"]
 
 
-class Seekplum_Cluster(Entity):
+class Cluster(Entity):
     """集群信息表"""
-    __tablename__ = "seekplum_cluster"
+    __tablename__ = "cluster"
 
     # enum
     THREE_TIER = "Three-tier"
@@ -34,7 +34,7 @@ class Seekplum_Cluster(Entity):
     uuid = Column(String(length=128), nullable=False, doc="集群uuid")
     type = Column(enum_qdtype, nullable=False, doc="集群类型")
     distance = Column(Integer, nullable=True, doc="距离：1/10/40/80公里")
-    description = Column(String(length=1024), nullable=True, doc="集群描述")
+    description = Column(JSON, default=[], nullable=True, doc="集群描述")
     ssh = Column(JSON, default={}, doc="登录集群的user/password/port/key")
 
     @classmethod
@@ -80,14 +80,14 @@ class Seekplum_Cluster(Entity):
             if old_obj.nodes and obj.nodes:
                 raise Exception("merge failed: both source and destination has no empty nodes")
             else:
-                return super(Seekplum_Cluster, cls).merge(session, obj, key)
+                return super(Cluster, cls).merge(session, obj, key)
         else:
-            return super(Seekplum_Cluster, cls).merge(session, obj, key)
+            return super(Cluster, cls).merge(session, obj, key)
 
 
-class Seekplum_Node(Entity):
+class Node(Entity):
     """主机信息表"""
-    __tablename__ = "seekplum_node"
+    __tablename__ = "node"
     # enum
 
     COMPUTE = "compute"
@@ -112,7 +112,7 @@ class Seekplum_Node(Entity):
     type = Column(enum_hosttype, doc="主机类型")
     status = Column(JSON, default={}, doc="主机状态 up/down")
     # cluster(many2one)
-    cluster_id = Column(Integer, ForeignKey("seekplum_cluster.id", ondelete="CASCADE"))
-    cluster = relationship(Seekplum_Cluster, backref=backref("nodes", cascade="all, delete-orphan", collection_class=set),
+    cluster_id = Column(Integer, ForeignKey("cluster.id", ondelete="CASCADE"))
+    cluster = relationship(Cluster, backref=backref("nodes", cascade="all, delete-orphan", collection_class=set),
                            doc="集群id")
     config = Column(JSON, default={}, doc="主机配置信息")  # 存ipmi信息

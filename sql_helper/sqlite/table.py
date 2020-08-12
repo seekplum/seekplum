@@ -3,7 +3,7 @@ try:
     import simplejson as json
 except:
     import json
-import db_local
+from . import db_local
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy import Column, String, Text, PickleType
 
