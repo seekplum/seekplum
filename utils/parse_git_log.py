@@ -9,7 +9,9 @@ import re
 # git log --name-only > test.txt 
 with open("test.txt", "r") as f:
     content = f.read()
-pattern = re.compile(r'commit \w+\nAuthor: .*\nDate: .*\n\s+(.*)\s+\n([\S\n]+)\n', re.M)
+# 无 Change-Id
+# pattern = re.compile(r'commit \w+\nAuthor: .*\nDate: .*\n\s+(.*)\s+\n([\S\n]+)\n', re.M)
+pattern = re.compile(r'commit \w+\nAuthor: .*\nDate: .*\n\s+(.*)\s+\n\s+Change-Id: \w+\s*\n\s*\n([\S\n]+)\n', re.M)
 result = pattern.findall(content)
 for res in result[::-1]:
     message = res[0]
