@@ -22,6 +22,14 @@ class MinesweeperMap:
                 )
                 mines_line.append(Mine(images=images, position=position))
             self.mines_matrix.append(mines_line)
+        # 游戏当前的状态
+        self.status_code = -1
+        # 记录鼠标按下时的位置和按的键
+        self.mouse_pos = None
+        self.mouse_pressed = None
+        self.is_first_left_click = False
+
+    def random_mine(self):
         # 随机埋雷
         for i in random.sample(
             range(settings.GAME_MATRIX_SIZE[0] * settings.GAME_MATRIX_SIZE[1]),
@@ -30,15 +38,6 @@ class MinesweeperMap:
             self.mines_matrix[i // settings.GAME_MATRIX_SIZE[0]][
                 i % settings.GAME_MATRIX_SIZE[0]
             ].burymine()
-        count = 0
-        for item in self.mines_matrix:
-            for i in item:
-                count += int(i.is_mine_flag)
-        # 游戏当前的状态
-        self.status_code = -1
-        # 记录鼠标按下时的位置和按的键
-        self.mouse_pos = None
-        self.mouse_pressed = None
 
     def draw(self, screen: pygame.surface.Surface) -> None:
         """画出当前的游戏状态图"""
@@ -104,6 +103,9 @@ class MinesweeperMap:
         else:
             # 鼠标左键
             if self.mouse_pressed[0] and not self.mouse_pressed[2]:
+                if not self.is_first_left_click:
+                    self.random_mine()
+                    self.is_first_left_click = True
                 if not (mine_clicked.status_code == 2 or mine_clicked.status_code == 3):
                     if self.openmine(coord_x, coord_y):
                         self.setstatus(status_code=1)
