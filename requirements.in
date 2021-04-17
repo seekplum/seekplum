@@ -1,5 +1,44 @@
+# 网络请求
 requests
+
+# 爬虫
 beautifulsoup4
-futures
+
+# Excel
+pandas
+openpyxl
+xlrd
+xlwt
+
+# Python2/3 版本兼容
 six
+
+# 基础包
+mitmproxy
 jinja2
+marshmallow
+redis
+# elastic
+celery
+sqlalchemy
+pymongo
+tornado
+sse
+pika
+
+# 游戏包
+pygame
+
+# 开发管理
+# invoke
+autoflake
+flake8
+# pylint
+isort
+mypy
+# black
+yapf
+
+# 测试
+pytest
+pytest-cov
