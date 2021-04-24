@@ -30,13 +30,13 @@ pika
 pygame
 
 # 开发管理
-# invoke
+invoke
 autoflake
 flake8
-# pylint
+pylint
 isort
 mypy
-# black
+black
 yapf
 
 # 测试
