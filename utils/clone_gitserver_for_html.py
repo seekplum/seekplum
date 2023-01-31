@@ -8,10 +8,11 @@ import re
 import subprocess
 
 from threading import Lock
+from textwrap import dedent
 
 import requests
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -87,10 +88,10 @@ class Clone(object):
         url = urljoin(self._base_url, "user/login")
         response = self._req_session.get(url=url)
         content = response.text
-        pattern = re.compile(r'<meta name="_csrf" content="(.+)" />')
+        pattern = re.compile(r'<meta name="_csrf" content="(.+)" />|csrfToken:\s*\'(\S+)\',')
         match = pattern.search(content)
         if match:
-            token = match.group(1)
+            token = next((x for x in match.groups() if x))
             return token
         raise Exception("查询token失败")
 
@@ -163,7 +164,7 @@ class Clone(object):
         users = self._query_for_user()
         organizations = self._query_for_organization()
         projects = []
-        for target in users + organizations:
+        for target in sorted(set(users + organizations)):
             result = self.query_target_project(target)
             projects.extend(map(lambda x: "{}/{}".format(target, x), result))
         return projects
@@ -176,7 +177,7 @@ class Clone(object):
         :rtype int
         """
         pattern = re.compile(r'<a class=" item" href="/.+\?page=(\d+)&'
-                             r'sort=recentupdate&amp;q=&amp;tab=">\d+</a>')
+                             r'sort=recentupdate&amp;q=&amp;tab=&amp;language=">\d+</a>')
         pages = pattern.findall(content)
         pages = [int(i) for i in pages]
         page = max(pages) if pages else 1
@@ -192,30 +193,28 @@ class Clone(object):
         repository = self._get_git_url(project)
         target_dir = os.path.join(self._target_dir, project)
         if os.path.exists(target_dir):
-            cmd = (
-                'if [ `git rev-list -n 1 --all | wc -l` != 0 ]; '
-                'then '
-                'if [ `git branch -a | grep "origin/master" | wc -l` == 0 ]; '
-                'then '
-                'branch="origin/`git rev-parse --abbrev-ref HEAD`"; '
-                'else '
-                'branch="origin/master"; fi; '
-                'if [ $? != 0 ]; '
-                'then echo "\033[33m`pwd` get branch failed \033[0m";'
-                'else '
-                'if [ `git status -s | wc -l` == 0 ]; '
-                'then git branch --set-upstream-to="$branch" >/dev/null 2>&1; '
-                'git pull --rebase >/dev/null 2>&1; '
-                'else echo "\033[33m`pwd` has been modified \033[0m"; fi;'
-                'if [ $? != 0 ]; '
-                'then echo "\033[33m`pwd` pull failed \033[0m"; fi;'
-                'fi; '
-                'else echo "\033[33m`pwd` is an empty repository \033[0m";'
-                'fi; '
-            )
+            cmd = dedent("""\
+                if [ `git rev-list -n 1 --all | wc -l` != 0 ]; then
+                    if [ `git status -s | wc -l` == 0 ]; then
+                        remote=`git remote | tail -n 1`
+                        branch=`git rev-parse --abbrev-ref HEAD`
+                        git fetch ${remote} && git pull ${remote} ${branch} --rebase >/dev/null 2>&1;
+                        if [ $? != 0 ]; then
+                            echo "\033[31m`pwd` pull failed \033[0m";
+                        else
+                            echo "\033[32m`pwd` pull success \033[0m";
+                        fi;
+                    else
+                        echo "\033[33m`pwd` has been modified \033[0m";
+                    fi;
+                else
+                    echo "\033[33m`pwd` is an empty repository \033[0m";
+                fi;
+                """)
             with cd(target_dir):
-                logger.info("director: {}".format(target_dir))
+                # logger.info("director: {}".format(target_dir))
                 try:
+                    # logger.info("cmd: %s" % cmd)
                     subprocess.check_call(cmd, shell=True)
                 except subprocess.CalledProcessError:
                     self._is_running = False
@@ -248,12 +247,12 @@ class Clone(object):
         """查询项目信息
         """
         base = '<a class="name" href="/{}/.*">\n\s+(.*)\n\s+</a>'.format(target)
-        forked = '(\n.*\n.*<span><i class="octicon octicon-repo-forked"></i></span>)?'
-        pattern = re.compile(r'{}{}'.format(base, forked), re.MULTILINE)
+        forked = '((\n.*){0,9}octicon-repo-forked")?'
+        pattern = re.compile(r'{base}{forked}'.format(base=base, forked=forked), re.MULTILINE)
         projects = pattern.findall(content)
-        fork_projects = [p[0] for p in projects if len(p) == 2 and p[1] != ""]
+        fork_projects = [p[0] for p in projects if len(p) == 3 and p[1] != ""]
         self.fork_projects.extend(["{}/{}".format(target, n) for n in fork_projects])
-        return [p[0] for p in projects if p[0] not in fork_projects]
+        return sorted({p[0] for p in projects if p[0] not in fork_projects})
 
     def _get_git_url(self, project):
         """组合git远程路径
@@ -264,10 +263,10 @@ class Clone(object):
     def do_clone(self):
         self._login()
         projects = self.query_projects()
-        self.clone_projects(projects)
         print("-" * 100)
         print("\n".join(self.fork_projects))
         print("-" * 100)
+        self.clone_projects(projects)
 
 
 def main():
