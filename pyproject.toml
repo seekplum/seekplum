@@ -1,0 +1,118 @@
+[tool.pylint.master]
+job = 0
+suggestion-mode = "yes"
+extension-pkg-whitelist = "pydantic"
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.similarities]
+ignore-imports = "yes"
+
+[tool.pylint.basic]
+argument-naming-style = "any"
+attr-naming-style = "any"
+function-naming-style = "any"
+method-naming-style = "any"
+variable-naming-style = "any"
+
+[tool.pylint.message_control]
+disable = [
+  "duplicate-code",
+  "missing-docstring",
+  "logging-fstring-interpolation",
+  "superfluous-parens",
+  "broad-except",
+  "unnecessary-lambda",
+  "use-dict-literal"
+]
+
+[tool.pylint.design]
+min-public-methods = 0
+max-args = 7
+max-positional-arguments = 7
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+ignore_missing_imports = true
+mypy_path = "mystubs"
+exclude = []
+
+[[tool.mypy.overrides]]
+module = [
+  "app.*",
+  "sdk.*",
+  "tests.*",
+  "dramatiq_schedule.py.*",
+  "manage.*"
+]
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+addopts = " -svv --cov=app"
+minversion = "6.0"
+testpaths = [
+  "tests",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+fail_under = 50.0
+show_missing = true
+skip_covered = true
+skip_empty = true
+sort = "miss"
+
+[tool.coverage.path]
+source = "app"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+line_length = 120
+force_grid_wrap = 0
+profile = "black"
+src_paths = ["app", "tests"]
+use_parentheses = true
+known_first_party = []
+
+[tool.flake8]
+ignore = ['B008', 'W503', 'E203']
+max-line-length = 120
+max-complexity = 12
+exclude = [
+  '.git',
+  '__pycache__',
+  '.mypy_cache',
+  '.pytest_cache',
+  'test.py'
+]
+extend-immutable-calls = []
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = []
+
+[tool.bandit]
+exclude_dirs = [
+  '.git',
+  '__pycache__',
+  '.mypy_cache',
+  '.pytest_cache',
+  'test.py'
+]
+skips = ['B110', 'B311', 'B105', 'B106', 'B403', 'B413', 'B301']
+
+[tool.bandit.assert_used]
+skips = ['./tests/*', 'tests/*', '*_test.py', '*test_*.py']
